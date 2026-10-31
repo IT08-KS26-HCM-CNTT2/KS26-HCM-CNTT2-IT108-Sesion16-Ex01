@@ -1,0 +1,28 @@
+
+
+1. Sơ đồ luồng dữ liệu (Data Flow) và Cơ chế xử lý xung đột
+A. Luồng dữ liệu đồng bộ từ Local lên Cloud
+1. **Lưu trữ cục bộ (Local SSD):** Khi Designer (bạn A) thao tác thiết kế 3D, file được lưu trực tiếp xuống ổ cứng cục bộ (`Ctrl + S`) nhằm đảm bảo tốc độ đọc/ghi cực nhanh, không phụ thuộc vào đường truyền mạng hay độ trễ của server.
+2. **Tiến trình giám sát ngầm (Background Sync):** Ứng dụng đồng bộ đám mây (như OneDrive, Google Drive for Desktop) chạy ngầm liên tục theo dõi các thay đổi trong thư mục dự án.
+3. **Đẩy dữ liệu lên Cloud:** Ngay khi phát hiện file được cập nhật thời gian chỉnh sửa mới, hệ thống tự động mã hóa và tải các khối dữ liệu (chunks) thay đổi lên đám mây theo thời gian thực để tạo bản sao lưu an toàn.
+B. Cơ chế xử lý xung đột phiên bản (File Version Conflict)
+* **Tình huống xung đột:** Xảy ra khi hai thành viên trong nhóm cùng chỉnh sửa một file trong lúc mất kết nối mạng, hoặc lưu đè dữ liệu lên nhau.
+* **Cách hệ thống xử lý:** 
+  * Cloud không ghi đè làm mất dữ liệu của bất kỳ ai mà tự động sinh ra một bản sao xung đột riêng biệt (*Conflict Copy*).
+  * Hệ thống lưu trữ lịch sử phiên bản (*Version History*), cho phép người dùng mở lại lịch sử các lần chỉnh sửa, dùng công cụ so sánh (Compare) để xem sự khác biệt và thực hiện gộp (Merge) nội dung cần thiết vào phiên bản chính thức.
+2. Giải pháp đối phó với "Bẫy dữ liệu" (Mất mạng & Sập nguồn)
+* **Khi mất kết nối Internet:** 
+  * Hệ thống hoạt động theo nguyên tắc **Offline-First**. Mọi thao tác lưu file (`Ctrl + S`) vẫn ghi nhận hoàn chỉnh vào ổ cứng Local. 
+  * Ngay khi máy tính có kết nối mạng trở lại, tiến trình đồng bộ sẽ tự động tiếp tục công việc đẩy các thay đổi mới nhất lên Cloud mà không làm gián đoạn tiến độ công việc.
+* **Khi sập nguồn đột ngột:** 
+  * Vì dữ liệu đã được lưu trữ liên tục trên ổ cứng Local SSD ngay từ mỗi lần lưu file (hoặc tính năng Auto-save của phần mềm thiết kế), phiên bản gần nhất vẫn được giữ nguyên vẹn. 
+  * Khi máy tính khởi động lại, ứng dụng đồng bộ sẽ quét và tiếp tục đưa dữ liệu lên Cloud một cách an toàn.
+ 3. Quy trình 3 bước thiết lập phần mềm đồng bộ chuẩn cho Designer
+* **Bước 1: Cài đặt và cấu hình thư mục làm việc chuyên dụng trên Local SSD**
+  * Cài đặt phần mềm lưu trữ đám mây (Google Drive for Desktop hoặc OneDrive).
+  * Chỉ định thư mục làm việc chính nằm ngay trên ổ cứng SSD của máy tính (ví dụ: `D:\Projects\SoHoaBaoTangPTIT`) để đảm bảo hiệu suất render và mở file 3D nặng.
+* **Bước 2: Cấu hình chế độ đồng bộ thông minh (Files On-Demand / Offline Access)**
+  * Thiết lập chế độ giữ bản sao cục bộ (**Always keep on this device**) cho thư mục dự án hiện tại để tránh việc phần mềm tự xóa cache làm chậm quá trình làm việc với file dung lượng lớn.
+* **Bước 3: Thiết lập Version History & Quản lý phân quyền nhóm**
+  * Cấu hình thời gian lưu trữ phiên bản trên Cloud để dễ dàng "quay ngược thời gian" khôi phục file khi gặp sự cố hỏng hóc.
+  * Phân quyền truy cập thư mục cho các thành viên trong nhóm (Editor / Viewer) nhằm kiểm soát chặt chẽ lịch sử chỉnh sửa tài liệu.
